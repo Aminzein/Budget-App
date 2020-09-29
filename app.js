@@ -1,5 +1,46 @@
 var budgetController = (function () {
+    function Expense(value , description , id){
+        this.id = id;
+        this.value = value;
+        this.description = description;
+    }
 
+    function Income(value , description , id){
+        this.id = id;
+        this.value = value;
+        this.description = description;
+    }
+
+    var data = {
+        allitems : {
+            inc : [],
+            exp : []
+        },
+        totals : {
+            inc : 0,
+            exp : 0
+        }
+    }
+
+    return {
+        AddItem : (type , des , val) => {
+            var newItem , ID;
+            if(data.allitems[type].length > 0){
+                ID = data.allitems[type][data.allitems[type].length - 1].id + 1;
+            }
+            else {
+                ID = 0;
+            }
+            if(type === 'exp'){
+                newItem = new Expense(ID , des , val);
+            }
+            else if(type === 'inc'){
+                newItem = new Income(ID , des , val);
+            }
+            data.allitems[type].push(newItem);
+            return newItem;
+        } 
+    };
 
 })();
 
@@ -27,18 +68,30 @@ var UIController = (function () {
 
 
 var AppController = (function (budgetCtrl , UICtrl) {
-    var DOM = UICtrl.GetDOMstrings();
+    
+    function SetupEventListeners(){
+        var DOM = UICtrl.GetDOMstrings();
+        document.querySelector(DOM.inputButton).addEventListener('click' ,HandleAddBtnClickEvent);    
+        document.addEventListener('keypress' , (event) => {
+            if(event.key === "Enter" || event.which === 13){
+                HandleAddBtnClickEvent();
+            }
+        });
+
+    }
+    
 
     function HandleAddBtnClickEvent(){
-        var input = UICtrl.GetInput();
-        console.log(input); 
+        var input , newItem;
+        input = UICtrl.GetInput();
+        newItem = budgetCtrl.AddItem(input.type , input.description , input.value)
     }
 
-    document.querySelector(DOM.inputButton).addEventListener('click' ,HandleAddBtnClickEvent);    
-    document.addEventListener('keypress' , (event) => {
-        if(event.key === "Enter" || event.which === 13){
-            HandleAddBtnClickEvent();
+    return {
+        init : () => {
+            SetupEventListeners();
         }
-    });
+    }
+
 
 })(budgetController , UIController);
