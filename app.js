@@ -57,6 +57,17 @@ var budgetController = (function () {
             return newItem;
         } ,
 
+        DeleteItem : (type , id) => {
+            var ids , index;
+            ids = data.allitems[type].map(element => {
+                return element.id;
+            })
+            index = ids.indexOf(id);
+            if(index !== -1){
+                data.allitems[type].splice(index , 1);
+            }
+        } ,
+
         CalculateBudget : () => {
             CalculateTotal('inc');
             CalculateTotal('exp');
@@ -89,7 +100,8 @@ var UIController = (function () {
         budgetLabel : '.budget__value' , 
         incomeLabel : '.budget__income--value' ,
         expensesLabel : '.budget__expenses--value' , 
-        percentageLabel : '.budget__expenses--percentage' 
+        percentageLabel : '.budget__expenses--percentage' ,
+        container : '.container'
 
     };
     
@@ -106,20 +118,26 @@ var UIController = (function () {
             var html , element;
             if(type === 'inc'){
                 element = DOMstrings.incomeContainer;
-                html = '<div class="item clearfix" id="income-' + 
+                html = '<div class="item clearfix" id="inc-' + 
                 obj.id + '"><div class="item__description">' + 
                 obj.description + '</div><div class="right clearfix"><div class="item__value">' + obj.value + 
                 '</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
             else if(type === 'exp'){
                 element = DOMstrings.expensesContainer;
-                html = '<div class="item clearfix" id="expense-' + obj.id + 
+                html = '<div class="item clearfix" id="exp-' + obj.id + 
                 '"><div class="item__description">' + obj.description + 
                 '</div><div class="right clearfix"><div class="item__value">' + obj.value + 
                 '</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
             }
             document.querySelector(element).insertAdjacentHTML('beforeend' , html);
         },
+
+        DeleteListItem : (selectorID) => {
+            var el;
+            el = document.getElementById(selectorID); 
+            el.parentNode.removeChild(el);
+        } ,
 
         GetDOMstrings : () => {
             return DOMstrings;
@@ -160,7 +178,7 @@ var AppController = (function (budgetCtrl , UICtrl) {
                 HandleAddBtnClickEvent();
             }
         });
-
+        document.querySelector(DOM.container).addEventListener('click' , CtrlDeleteItem);
     }
     
     function UpdateBudget() {
@@ -176,6 +194,19 @@ var AppController = (function (budgetCtrl , UICtrl) {
             newItem = budgetCtrl.AddItem(input.type , input.description , input.value);
             UICtrl.AddListItem(newItem , input.type);
             UICtrl.ClearFields();
+            UpdateBudget();
+        }
+    }
+
+    function CtrlDeleteItem(event){
+        var itemID , splitedID , type , ID;
+        itemID = event.target.parentNode.parentNode.parentNode.parentNode.id;
+        if(itemID){
+            splitedID = itemID.split('-');
+            type = splitedID[0];
+            ID = parseInt(splitedID[1]);
+            budgetCtrl.DeleteItem(type , ID);
+            UICtrl.DeleteListItem(itemID);
             UpdateBudget();
         }
     }
